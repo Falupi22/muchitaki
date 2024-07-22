@@ -1,0 +1,2 @@
+clickToMove filter=lfs diff=lfs merge=lfs -text
+MuchiTaki filter=lfs diff=lfs merge=lfs -text

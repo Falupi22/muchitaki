@@ -1,0 +1,206 @@
+[
+    {
+        "Country": "Argentina",
+        "SubCards": [
+            {
+                "Destination": "Bariloche",
+                "IsMostPopular": false
+            },
+            {
+                "Destination": "Buenos Aires",
+                "IsMostPopular": true,
+                "IsCapital": true
+            },
+            {
+                "Destination": "Ushuaia",
+                "IsMostPopular": false
+            },
+            {
+                "Destination": "Mendoza",
+                "IsMostPopular": false
+            },
+            {
+                "Destination": "Jujuy",
+                "IsMostPopular": false
+            },
+            {
+                "Destination": "El Calafate",
+                "IsMostPopular": false
+            },
+            {
+                "Destination": "El Chalten",
+                "IsMostPopular": false
+            }
+        ]
+    },
+    {
+        "Country": "Bolivia",
+        "SubCards": [
+            {
+                "Destination": "Death Road"
+            },
+            {
+                "Destination": "La Paz"
+            },
+            {
+                "Destination": "Santa Cruz"
+            },
+            {
+                "Destination": "Sucre",
+                "IsCapital": true
+            },
+            {
+                "Destination": "Selar de Uyuni",
+                "IsMostPopular": true
+            }
+        ]
+    },
+    {
+        "Country": "Brazil",
+        "SubCards": [
+            {
+                "Destination": "Rio",
+                "IsMostPopular": true
+            },
+            {
+                "Destination": "Foz de Iguazu",
+                "IsMostPopular": false
+            },
+            {
+                "Destination": "Moro de Sau Paulo",
+                "IsMostPopular": false
+            },
+            {
+                "Destination": "Salvador",
+                "IsMostPopular": false
+            },
+            {
+                "Destination": "Ita Carre",
+                "IsMostPopular": false
+            },
+            {
+                "Destination": "Ilha Grande",
+                "IsMostPopular": false
+            },
+            {
+                "Destination": "Florianapolis",
+                "IsMostPopular": false
+            }
+        ]
+    },
+    {
+        "Country": "Chile",
+        "SubCards": [
+            {
+                "Destination": "Pucon",
+                "IsMostPopular": true
+            },
+            {
+                "Destination": "Atacama Desert"
+            },
+            {
+                "Destination": "Punta Arenas"
+            },
+            {
+                "Destination": "Santiago",
+                "IsCapital": true
+            },
+            {
+                "Destination": "Torres del Paine"
+            },
+            {
+                "Destination": "Carratera Astral"
+            }
+
+        ]
+    },
+    {
+        "Country": "Peru",
+        "SubCards": [
+            {
+                "Destination": "Macchu Pichu",
+                "IsMostPopular": true
+            },
+            {
+                "Destination": "Cusco"
+            },
+            {
+                "Destination": "Iquitos"
+            },
+            {
+                "Destination": "Lima",
+                "IsCapital": true
+            },
+            {
+                "Destination": "Ica"
+            },
+            {
+                "Destination": "Huaraz"
+            },
+            {
+                "Destination": "Rainbow Mountain"
+            },
+            {
+                "Destination": "The Seven Lakes"
+            },
+            {
+                "Destination": "Titikaka Lake"
+            }
+
+        ]
+    },
+    {
+        "Country": "Colombia",
+        "SubCards": [
+            {
+                "Destination": "Medellin",
+                "IsMostPopular": true
+            },
+            {
+                "Destination": "Bogota",
+                "IsCapital": true
+            },
+            {
+                "Destination": "Cartagena"
+            },
+            {
+                "Destination": "Salento"
+            },
+            {
+                "Destination": "Santa Marta"
+            },
+            {
+                "Destination": "Cali"
+            },
+            {
+                "Destination": "San Gil"
+            },
+            {
+                "Destination": "San Andres"
+            }
+
+        ]
+    },
+    {
+        "Country": "Guatemala",
+        "SubCards": [
+            {
+                "Destination": "Antigua",
+                "IsMostPopular": true
+            },
+            {
+                "Destination": "Guatemala City",
+                "IsCapital": true
+            },
+            {
+                "Destination": "San Pedro"
+            },
+            {
+                "Destination": "Semuc Champay"
+            },
+            {
+                "Destination": "Tikal"
+            }
+        ]
+    }
+]

@@ -7,7 +7,7 @@ using UnityEngine;
 /// Change destination card
 /// </summary>
 
-public class Startup : MonoBehaviour
+public class ButtonDebug : MonoBehaviour
 {
     #region Methods
 

@@ -14,11 +14,14 @@ public static class CardCreator
 
     public static (SpecialCard[], CountryCard[], DestinationCard[]) Create()
     {
-        using (StreamReader reader = new StreamReader("file.json"))
+        using (StreamReader reader = new StreamReader("../Cards.json"))
         {
             string json = reader.ReadToEnd();
-            List<Item> items = JsonConvert.DeserializeObject<List<Item>>(json);
+            List<CardJSONObject> items = JsonConvert.DeserializeObject<List<CardJSONObject>>(json);
+            items.ForEach(item => Debug.Log(JsonConvert.SerializeObject(item)));
         }
+
+        return (null, null, null);
     }
 
     #endregion

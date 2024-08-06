@@ -14,6 +14,7 @@ namespace Assets.Code.Scripts.Server
         #region Constants
 
         public const int MIN_PLAYERS = 2;
+        public const int INITIAL_HAND_AMOUNT = 8;
 
         #endregion
 
@@ -25,7 +26,7 @@ namespace Assets.Code.Scripts.Server
 
         #region Fields
 
-        private List<Card> cardDeck;
+        private Stack<Card> cardDeck;
         private PlayerManager playerManager;
         private Player currentPlayer;
 
@@ -35,7 +36,7 @@ namespace Assets.Code.Scripts.Server
 
         private GameManager()
         {
-            cardDeck = new List<Card>();
+            cardDeck = new Stack<Card>();
             playerManager = PlayerManager.Instance;
 
             playerManager.PlayerConnected += HandlePlayerConnected;
@@ -47,7 +48,7 @@ namespace Assets.Code.Scripts.Server
 
             if (PlayerManager.Instance.Players.Count >= MIN_PLAYERS)
             {
-                StartNew(PlayerManager.Instance.Players);
+                StartNew();
             }
         }
 
@@ -67,13 +68,19 @@ namespace Assets.Code.Scripts.Server
 
         #region Methods
 
-        public void StartNew(List<Player> players)
+        public void StartNew()
         {
-            players.Clear();
-            players.AddRange(players);
-
             SetDeck();
-            currentPlayer = players.First();
+
+            PlayerManager.Instance.Players.Shuffle();
+
+            for (int playerIndex = 0; playerIndex < PlayerManager.Instance.Players.Count; playerIndex++)
+            {
+                PlayerManager.Instance.Players[playerIndex].Hand.AddRange(cardDeck.ToList().GetRange(INITIAL_HAND_AMOUNT * playerIndex, INITIAL_HAND_AMOUNT));
+                PlayerManager.Instance.SetPlayers(cardDeck.Peek(), playerIndex == 0);
+            }
+
+            currentPlayer = PlayerManager.Instance.Players.First();
         }
 
         private void SetDeck()
@@ -83,12 +90,17 @@ namespace Assets.Code.Scripts.Server
                 (SpecialCard[] specialCards, CountryCard[] countryCards, DestinationCard[] destinationCards) = CardCreator.Create();
 
                 cardDeck.Clear();
-                cardDeck.AddRange(specialCards);
-                cardDeck.AddRange(countryCards);
-                cardDeck.AddRange(destinationCards);
+                List<Card> cards = new List<Card>();
+                cards.AddRange(specialCards);
+                cards.AddRange(countryCards);
+                cards.AddRange(destinationCards);
 
-                cardDeck.Shuffle();
+                cards.Shuffle();
 
+                foreach (Card card in cards)
+                {
+                    cardDeck.Push(card);
+                }
             }
             catch (Exception ex) { 
                 Console.WriteLine(ex);

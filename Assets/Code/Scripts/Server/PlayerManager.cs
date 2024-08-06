@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.PackageManager;
 
@@ -70,6 +71,32 @@ namespace Assets.Code.Scripts.Server
         #endregion
 
         #region Methods
+
+        /// <summary>
+        /// Informs the players about their hand, the exposed card and if they're first
+        /// </summary>
+        /// <param name="exposedCard"> Exposed card</param>
+        /// <param name="isFirst"> Are them first</param>
+        public async void SetPlayers(Card exposedCard, bool isFirst)
+        {
+            foreach (Player player in Players)
+            {
+                var data = new
+                {
+                    ExposedCard = exposedCard,
+                    player.Hand,
+                    IsFirst = isFirst
+                };
+                
+                string dataString = JsonConvert.SerializeObject(data);
+                await players[player].SendAsync(new Command(CommandType.InformGameInit, dataString));
+            }
+        }
+
+        public async void InformNextTurn(Player player)
+        {
+            await players[player].SendAsync(new Command(CommandType.InformTurn, null));
+        }
 
         private void HandlePlayerAction(Player player)
         {

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEditor.Networking.PlayerConnection;
 
 namespace Assets.Code.Scripts.Server
 {
@@ -25,7 +26,7 @@ namespace Assets.Code.Scripts.Server
         #region Fields
 
         private List<Card> cardDeck;
-        private List<Player> players;
+        private PlayerManager playerManager;
         private Player currentPlayer;
 
         #endregion
@@ -35,7 +36,19 @@ namespace Assets.Code.Scripts.Server
         private GameManager()
         {
             cardDeck = new List<Card>();
-            players = new List<Player>();
+            playerManager = PlayerManager.Instance;
+
+            playerManager.PlayerConnected += HandlePlayerConnected;
+        }
+
+        private void HandlePlayerConnected(Player player)
+        {
+            Console.WriteLine($"{player.Name} has joined!");
+
+            if (PlayerManager.Instance.Players.Count >= MIN_PLAYERS)
+            {
+                StartNew(PlayerManager.Instance.Players);
+            }
         }
 
         #endregion

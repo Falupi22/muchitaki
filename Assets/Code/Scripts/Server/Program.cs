@@ -13,7 +13,6 @@ namespace Assets.Code.Scripts.Server
     {
         #region Fields
 
-        private static List<Player> connectedPlayers;
         private static GameManager gameManager;
 
         #endregion
@@ -22,16 +21,7 @@ namespace Assets.Code.Scripts.Server
 
         private void Start()
         {
-            connectedPlayers = new List<Player>();
             gameManager = GameManager.Instance;
-        }
-
-        private void OnPlayersCollectionChanged()
-        {
-            if (connectedPlayers.Count >= GameManager.MIN_PLAYERS)
-            {
-                gameManager.StartNew(connectedPlayers);
-            }
         }
 
         #endregion

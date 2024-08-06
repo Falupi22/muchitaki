@@ -10,6 +10,7 @@ namespace Assets.Code.Scripts.Server
     {
         #region Fields
 
+        private Guid id;
         private List<Card> hand;
         private bool isCurrentTurn;
         private string name;
@@ -19,15 +20,31 @@ namespace Assets.Code.Scripts.Server
 
         #region Constructors
 
-        public Player(List<Card> Hand, string name)
+        public Player(string name, List<Card> Hand = null)
         {
-            hand.AddRange(Hand);
+            id = Guid.NewGuid();
             this.name = name;
+
+            if (Hand != null)
+            {
+                hand.AddRange(Hand);
+            }
+            else
+            {
+                Hand = new List<Card>();
+            }
         }
 
         #endregion
 
         #region Properties
+
+        public Guid ID
+        {
+            get { return id; }
+            set { id = value; }
+        }
+
 
         public string Name
         {

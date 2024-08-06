@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Net;
 using UnityEditor.Experimental.GraphView;
 using Assets.Code.Scripts.Common.Extensions;
+using System.Diagnostics;
 
 namespace Assets.Code.Scripts.Common.Sockets
 {
@@ -21,7 +22,6 @@ namespace Assets.Code.Scripts.Common.Sockets
         #region Fields
 
         private TcpListener listener;
-        private List<AsyncTCPClient> clients;
 
         #endregion
 
@@ -30,7 +30,6 @@ namespace Assets.Code.Scripts.Common.Sockets
         public AsyncTCPServer()
         {
             listener = new TcpListener(IPAddressHelper.GetLocal(), PORT);
-            clients = new List<AsyncTCPClient>();
         }
 
         #endregion
@@ -45,6 +44,7 @@ namespace Assets.Code.Scripts.Common.Sockets
 
         public async void Start()
         {
+            Debug.WriteLine("Server is running");
             listener.Start();
 
             while (true) 
@@ -52,7 +52,6 @@ namespace Assets.Code.Scripts.Common.Sockets
                 TcpClient client = await listener.AcceptTcpClientAsync();
 
                 AsyncTCPClient asyncTCPClient = new AsyncTCPClient(client);
-                clients.Add(asyncTCPClient);
 
                 _ = asyncTCPClient.StartReceivingAsync();
                 ClientConnected?.Invoke(asyncTCPClient);

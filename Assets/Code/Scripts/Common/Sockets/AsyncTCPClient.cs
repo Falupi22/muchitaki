@@ -107,7 +107,6 @@ namespace Assets.Code.Scripts.Common.Sockets
                     }
                     else { 
                         hasConnectionEnded = true;
-                        Disconnected?.Invoke(this);
                     }
                 }
                 catch (Exception exception)

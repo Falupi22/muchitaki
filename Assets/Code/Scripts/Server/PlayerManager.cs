@@ -3,6 +3,7 @@ using Assets.Code.Scripts.Common.Sockets;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -90,7 +91,10 @@ namespace Assets.Code.Scripts.Server
             client.ErrorOccurred -= HandleClientError;
             client.Disconnect();
 
+            Debug.WriteLine($"{player}:{exception}");
             await BroadcastExcept(new Command(CommandType.InformPlayerLeft, player.ToString()), client);
+            
+            players.Remove(player, out _);
         }
 
         private async void HandleDataReceived(string message, AsyncTCPClient client)
@@ -108,6 +112,8 @@ namespace Assets.Code.Scripts.Server
             players[player] = client;
 
             await BroadcastExcept(new Command(CommandType.InformPlayerJoined, player.ToString()), client);
+
+            Debug.WriteLine(name);
             PlayerConnected?.Invoke(player);
         }
 
@@ -118,9 +124,10 @@ namespace Assets.Code.Scripts.Server
             client.Disconnect();
 
             Player player = players.FirstOrDefault(item => item.Value == client).Key;
-            players[player] = client;
 
             await BroadcastExcept(new Command(CommandType.InformPlayerLeft, player.ToString()), client);
+            
+            players.Remove(player, out _);
             PlayerConnected?.Invoke(player);
         }
 

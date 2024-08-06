@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.PackageManager;
+using UnityEngine.XR;
 
 namespace Assets.Code.Scripts.Server
 {
@@ -40,6 +41,7 @@ namespace Assets.Code.Scripts.Server
 
             commandCallbacks.Add(CommandType.NameResp, HandleNameResp);
             commandCallbacks.Add(CommandType.Disconnect, HandleDisconnect);
+            commandCallbacks.Add(CommandType.PlayDone, HandlePlayDone);
 
             server.Start();
             server.ClientConnected += HandleClientConnected;
@@ -50,6 +52,7 @@ namespace Assets.Code.Scripts.Server
         #region Events
 
         public event Action<Player> PlayerConnected;
+        public event Action<Player, Card, List<Card>> TurnPlayed;
 
         #endregion
 
@@ -77,30 +80,44 @@ namespace Assets.Code.Scripts.Server
         /// </summary>
         /// <param name="exposedCard"> Exposed card</param>
         /// <param name="isFirst"> Are them first</param>
-        public async void SetPlayers(Card exposedCard, bool isFirst)
+        public async void SetPlayers(Card exposedCard, Player firstTurn)
         {
-            foreach (Player player in Players)
+            var data = new
             {
-                var data = new
-                {
-                    ExposedCard = exposedCard,
-                    player.Hand,
-                    IsFirst = isFirst
-                };
-                
-                string dataString = JsonConvert.SerializeObject(data);
-                await players[player].SendAsync(new Command(CommandType.InformGameInit, dataString));
-            }
+                ExposedCard = exposedCard,
+                Players,
+                FirstPlayerID = firstTurn.ID
+            };
+
+            string dataString = JsonConvert.SerializeObject(data);
+            await BroadcastExcept(new Command(CommandType.InformClientGameInit, dataString));
         }
 
-        public async void InformNextTurn(Player player)
+        public async Task InformStatus(Player winner, Card exposedCard, Player currentPlayer, Player nextPlayer)
         {
-            await players[player].SendAsync(new Command(CommandType.InformTurn, null));
-        }
+            var data = new
+            {
+                Winner = winner,
+                ExposedCard = exposedCard,
+                Players,
+                currentTurnPlayerID = nextPlayer.ID,
+                SpecialInfo = new object()
+            };
 
-        private void HandlePlayerAction(Player player)
+            string dataString = JsonConvert.SerializeObject(data);
+            await BroadcastExcept(new Command(CommandType.InformClientGameInit, dataString), players[currentPlayer]);
+        } 
+
+        public async Task InformTurnResult(Player player, Card retrieveCard, Card exposedCard)
         {
+            var data = new
+            {
+                RetrieveCard = retrieveCard,
+                ExposedCard = exposedCard
+            };
 
+            string dataString = JsonConvert.SerializeObject(data);
+            await players[player].SendAsync(new Command(CommandType.PlayDoneResp, dataString));
         }
 
         private async void HandleClientConnected(AsyncTCPClient client)
@@ -119,7 +136,7 @@ namespace Assets.Code.Scripts.Server
             client.Disconnect();
 
             Debug.WriteLine($"{player}:{exception}");
-            await BroadcastExcept(new Command(CommandType.InformPlayerLeft, player.ToString()), client);
+            await BroadcastExcept(new Command(CommandType.InformClientPlayerLeft, JsonConvert.SerializeObject(player)), client);
             
             players.Remove(player, out _);
         }
@@ -132,13 +149,24 @@ namespace Assets.Code.Scripts.Server
 
         #region Command Handlers
 
+        private async Task HandlePlayDone(Command command, AsyncTCPClient client)
+        {
+            await Task.Run(() => {
+            
+                (Card cardPlayed, List<Card> hand) = JsonConvert.DeserializeObject<(Card exposedCard, List<Card> hand)>(command.Data.ToString());
+                Player player = players.FirstOrDefault(item => item.Value == client).Key;
+
+                TurnPlayed?.Invoke(player, cardPlayed, hand);
+            });
+        }
+
         public async Task HandleNameResp(Command command, AsyncTCPClient client)
         {
-            string name = command.Data.ToString();
-            Player player = new Player(name);
+            (string name, Guid id) = JsonConvert.DeserializeObject<(string name, Guid id)>(command.Data.ToString());
+            Player player = new Player(name, id);
             players[player] = client;
 
-            await BroadcastExcept(new Command(CommandType.InformPlayerJoined, player.ToString()), client);
+            await BroadcastExcept(new Command(CommandType.InformClientPlayerJoined, JsonConvert.SerializeObject(player)), client);
 
             Debug.WriteLine(name);
             PlayerConnected?.Invoke(player);
@@ -152,7 +180,7 @@ namespace Assets.Code.Scripts.Server
 
             Player player = players.FirstOrDefault(item => item.Value == client).Key;
 
-            await BroadcastExcept(new Command(CommandType.InformPlayerLeft, player.ToString()), client);
+            await BroadcastExcept(new Command(CommandType.InformClientPlayerLeft, player.ToString()), client);
             
             players.Remove(player, out _);
             PlayerConnected?.Invoke(player);

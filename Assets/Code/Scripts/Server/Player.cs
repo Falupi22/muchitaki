@@ -20,9 +20,9 @@ namespace Assets.Code.Scripts.Server
 
         #region Constructors
 
-        public Player(string name, List<Card> Hand = null)
+        public Player(string name, Guid id, List<Card> Hand = null)
         {
-            id = Guid.NewGuid();
+            this.id = id;
             this.name = name;
 
             if (Hand != null)

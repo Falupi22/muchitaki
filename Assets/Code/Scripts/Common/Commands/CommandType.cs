@@ -11,10 +11,13 @@ namespace Assets.Code.Scripts.Common.Commands
         Name,
         NameResp,
         Disconnect,
-        DisconnectResp,
-        InformPlayerJoined,
-        InformPlayerLeft,
-        InformGameInit,
-        InformTurn
+        InformClientPlayerJoined,
+        InformClientPlayerLeft,
+        InformClientGameInit,
+        InformClientTurn,
+        PlayDone,
+        PlayDoneResp,
+        InformStatus,
+        InformLose
     }
 }

@@ -1,4 +1,5 @@
-﻿using Assets.Code.Scripts.Common.Extensions;
+﻿using Assets.Code.Scripts.Common.Commands;
+using Assets.Code.Scripts.Common.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,8 +28,10 @@ namespace Assets.Code.Scripts.Server
         #region Fields
 
         private Stack<Card> cardDeck;
+        private Stack<Card> cardExposedPile;
         private PlayerManager playerManager;
         private Player currentPlayer;
+ 
 
         #endregion
 
@@ -37,9 +40,54 @@ namespace Assets.Code.Scripts.Server
         private GameManager()
         {
             cardDeck = new Stack<Card>();
+            cardExposedPile = new Stack<Card>();
             playerManager = PlayerManager.Instance;
 
             playerManager.PlayerConnected += HandlePlayerConnected;
+            playerManager.TurnPlayed += HandleTurnPlayed;
+        }
+
+        private async void HandleTurnPlayed(Player player, Card cardPlayed, List<Card> hand)
+        {
+            Player winner = null;
+
+            if (hand.Count == 0)
+            {
+                // Tells the player that they won.
+                await PlayerManager.Instance.InformTurnResult(player, null, cardDeck.Pop());
+
+                winner = player;
+            }
+            else
+            {
+                if (cardPlayed == null) {
+                    // In case there are no cards left in the deck
+                    if (cardDeck.Count == 0)
+                    {
+                        cardDeck.Spill(cardExposedPile);
+                    }
+
+                    // Tells the player that they should take a card from the deck. Exposed card remains the same
+                    await PlayerManager.Instance.InformTurnResult(player, cardDeck.Pop(), null);
+                }
+                else
+                {
+                    cardExposedPile.Push(cardPlayed);
+
+                    // Normal turn. No card is taken, exposed card changes
+                    await PlayerManager.Instance.InformTurnResult(player, null, cardDeck.Pop());
+                }
+
+                int currentPlayerIndex = PlayerManager.Instance.Players.IndexOf(currentPlayer);
+
+                // Proceeds to the next turn
+                currentPlayer = currentPlayerIndex == PlayerManager.Instance.Players.Count - 1 ? 
+                    PlayerManager.Instance.Players[0] : 
+                    PlayerManager.Instance.Players[currentPlayerIndex + 1];
+
+            }
+            
+            await PlayerManager.Instance.InformStatus(winner, cardPlayed, player, currentPlayer);
         }
 
         private void HandlePlayerConnected(Player player)
@@ -77,10 +125,10 @@ namespace Assets.Code.Scripts.Server
             for (int playerIndex = 0; playerIndex < PlayerManager.Instance.Players.Count; playerIndex++)
             {
                 PlayerManager.Instance.Players[playerIndex].Hand.AddRange(cardDeck.ToList().GetRange(INITIAL_HAND_AMOUNT * playerIndex, INITIAL_HAND_AMOUNT));
-                PlayerManager.Instance.SetPlayers(cardDeck.Peek(), playerIndex == 0);
             }
 
             currentPlayer = PlayerManager.Instance.Players.First();
+            PlayerManager.Instance.SetPlayers(cardDeck.Peek(), currentPlayer);
         }
 
         private void SetDeck()

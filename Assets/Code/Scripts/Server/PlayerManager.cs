@@ -52,6 +52,7 @@ namespace Assets.Code.Scripts.Server
         #region Events
 
         public event Action<Player> PlayerConnected;
+        public event Action<Player> PlayerDisconnected;
         public event Action<Player, List<Card>, List<Card>> TurnPlayed;
 
         #endregion
@@ -142,6 +143,7 @@ namespace Assets.Code.Scripts.Server
             await BroadcastExcept(new Command(CommandType.InformClientPlayerLeft, JsonConvert.SerializeObject(player)), client);
             
             players.Remove(player, out _);
+            PlayerDisconnected?.Invoke(player);
         }
 
         private async void HandleDataReceived(string message, AsyncTCPClient client)
@@ -186,7 +188,7 @@ namespace Assets.Code.Scripts.Server
             await BroadcastExcept(new Command(CommandType.InformClientPlayerLeft, player.ToString()), client);
             
             players.Remove(player, out _);
-            PlayerConnected?.Invoke(player);
+            PlayerDisconnected?.Invoke(player);
         }
 
         public async Task BroadcastExcept(Command command, params AsyncTCPClient[] clients)

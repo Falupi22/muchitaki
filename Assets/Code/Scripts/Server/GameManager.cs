@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor.Networking.PlayerConnection;
 
@@ -15,6 +16,8 @@ namespace Assets.Code.Scripts.Server
         #region Constants
 
         public const int MIN_PLAYERS = 2;
+        public const int MAX_PLAYERS = 4;
+        public const int WAIT_INTERVAL_BEFORE_PLAY = 10000;
         public const int INITIAL_HAND_AMOUNT = 8;
 
         #endregion
@@ -27,6 +30,8 @@ namespace Assets.Code.Scripts.Server
 
         #region Fields
 
+        private Timer timer;
+        private bool isGamePending;
         private Stack<Card> cardDeck;
         private Stack<Card> cardExposedPile;
         private PlayerManager playerManager;
@@ -39,12 +44,14 @@ namespace Assets.Code.Scripts.Server
 
         private GameManager()
         {
+            timer = new Timer(HandleTimerElapsed);
             cardDeck = new Stack<Card>();
             cardExposedPile = new Stack<Card>();
             playerManager = PlayerManager.Instance;
 
             playerManager.PlayerConnected += HandlePlayerConnected;
             playerManager.TurnPlayed += HandleTurnPlayed;
+            playerManager.PlayerDisconnected += HandlePlayerDisconnected;
         }
 
         #endregion
@@ -120,10 +127,52 @@ namespace Assets.Code.Scripts.Server
         {
             Console.WriteLine($"{player.Name} has joined!");
 
+            if (PlayerManager.Instance.Players.Count == MAX_PLAYERS)
+            {
+                if (isGamePending)
+                {
+                    CancelTimer();
+                }
+
+                StartNew();
+            }
+            else if (PlayerManager.Instance.Players.Count >= MIN_PLAYERS) 
+            { 
+                if (!isGamePending)
+                {
+                    timer.Change(WAIT_INTERVAL_BEFORE_PLAY, 1);
+                    isGamePending = true;
+                }
+            }
+
+            isGamePending = false;
+        }
+
+        private void HandleTimerElapsed(object state)
+        {
             if (PlayerManager.Instance.Players.Count >= MIN_PLAYERS)
             {
                 StartNew();
             }
+        }
+
+        private void HandlePlayerDisconnected(Player player)
+        {
+            if (PlayerManager.Instance.Players.Count < MIN_PLAYERS)
+            {
+                if (isGamePending)
+                {
+                    CancelTimer();
+                }
+            }
+        }
+
+        private void CancelTimer()
+        {
+            isGamePending = false;
+            timer.Dispose();
+
+            timer = new Timer(HandleTimerElapsed);
         }
 
         public void StartNew()

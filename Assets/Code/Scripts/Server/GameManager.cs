@@ -35,7 +35,7 @@ namespace Assets.Code.Scripts.Server
 
         #endregion
 
-        #region Constructor
+        #region Constructors
 
         private GameManager()
         {
@@ -45,59 +45,6 @@ namespace Assets.Code.Scripts.Server
 
             playerManager.PlayerConnected += HandlePlayerConnected;
             playerManager.TurnPlayed += HandleTurnPlayed;
-        }
-
-        private async void HandleTurnPlayed(Player player, Card cardPlayed, List<Card> hand)
-        {
-            Player winner = null;
-
-            if (hand.Count == 0)
-            {
-                // Tells the player that they won.
-                await PlayerManager.Instance.InformTurnResult(player, null, cardDeck.Pop());
-
-                winner = player;
-            }
-            else
-            {
-                if (cardPlayed == null) {
-                    // In case there are no cards left in the deck
-                    if (cardDeck.Count == 0)
-                    {
-                        cardDeck.Spill(cardExposedPile);
-                    }
-
-                    // Tells the player that they should take a card from the deck. Exposed card remains the same
-                    await PlayerManager.Instance.InformTurnResult(player, cardDeck.Pop(), null);
-                }
-                else
-                {
-                    cardExposedPile.Push(cardPlayed);
-
-                    // Normal turn. No card is taken, exposed card changes
-                    await PlayerManager.Instance.InformTurnResult(player, null, cardDeck.Pop());
-                }
-
-                int currentPlayerIndex = PlayerManager.Instance.Players.IndexOf(currentPlayer);
-
-                // Proceeds to the next turn
-                currentPlayer = currentPlayerIndex == PlayerManager.Instance.Players.Count - 1 ? 
-                    PlayerManager.Instance.Players[0] : 
-                    PlayerManager.Instance.Players[currentPlayerIndex + 1];
-
-            }
-            
-            await PlayerManager.Instance.InformStatus(winner, cardPlayed, player, currentPlayer);
-        }
-
-        private void HandlePlayerConnected(Player player)
-        {
-            Console.WriteLine($"{player.Name} has joined!");
-
-            if (PlayerManager.Instance.Players.Count >= MIN_PLAYERS)
-            {
-                StartNew();
-            }
         }
 
         #endregion
@@ -115,6 +62,69 @@ namespace Assets.Code.Scripts.Server
         #endregion
 
         #region Methods
+
+        private void Reset()
+        {
+            cardDeck.Clear();
+            cardExposedPile.Clear();
+        }
+
+        private async void HandleTurnPlayed(Player player, List<Card> cardsPlayed, List<Card> hand)
+        {
+            Player winner = null;
+
+            if (hand.Count == 0)
+            {
+                // Tells the player that they won.
+                await PlayerManager.Instance.InformTurnResult(player, null, cardDeck.Pop());
+
+                winner = player;
+            }
+            else
+            {
+                if (cardsPlayed == null)
+                {
+                    // In case there are no cards left in the deck
+                    if (cardDeck.Count == 0)
+                    {
+                        cardDeck.Spill(cardExposedPile);
+                    }
+
+                    // Tells the player that they should take a card from the deck. Exposed card remains the same
+                    await PlayerManager.Instance.InformTurnResult(player, cardDeck.Pop(), null);
+                }
+                else
+                {
+                    foreach (Card card in cardsPlayed)
+                    {
+                        cardExposedPile.Push(card);
+                    }
+
+                    // Normal turn. No card is taken, exposed card changes
+                    await PlayerManager.Instance.InformTurnResult(player, null, cardDeck.Pop());
+                }
+
+                int currentPlayerIndex = PlayerManager.Instance.Players.IndexOf(currentPlayer);
+
+                // Proceeds to the next turn
+                currentPlayer = currentPlayerIndex == PlayerManager.Instance.Players.Count - 1 ?
+                    PlayerManager.Instance.Players[0] :
+                    PlayerManager.Instance.Players[currentPlayerIndex + 1];
+
+            }
+
+            await PlayerManager.Instance.InformStatus(winner, cardExposedPile.Peek(), player, currentPlayer);
+        }
+
+        private void HandlePlayerConnected(Player player)
+        {
+            Console.WriteLine($"{player.Name} has joined!");
+
+            if (PlayerManager.Instance.Players.Count >= MIN_PLAYERS)
+            {
+                StartNew();
+            }
+        }
 
         public void StartNew()
         {

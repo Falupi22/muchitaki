@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Assets.Code.Scripts.Server
 {
-    internal class Player
+    public class Player
     {
         #region Fields
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Assets.Code.Scripts.Common.Commands
 {
@@ -49,6 +50,16 @@ namespace Assets.Code.Scripts.Common.Commands
             object data = command.Substring(command.IndexOf(SEPERATOR) + 1);
 
             return new Command(commandType, data);
+        }
+
+        public string ObjectToJsonData()
+        {
+            return JsonConvert.SerializeObject(Data);
+        }
+
+        public T DataToJson<T>()
+        { 
+            return JsonConvert.DeserializeObject<T>(Data.ToString());
         }
 
         #endregion

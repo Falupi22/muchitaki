@@ -52,7 +52,7 @@ namespace Assets.Code.Scripts.Server
         #region Events
 
         public event Action<Player> PlayerConnected;
-        public event Action<Player, Card, List<Card>> TurnPlayed;
+        public event Action<Player, List<Card>, List<Card>> TurnPlayed;
 
         #endregion
 
@@ -100,12 +100,12 @@ namespace Assets.Code.Scripts.Server
                 Winner = winner,
                 ExposedCard = exposedCard,
                 Players,
-                currentTurnPlayerID = nextPlayer.ID,
+                CurrentTurnPlayerID = nextPlayer.ID,
                 SpecialInfo = new object()
             };
 
             string dataString = JsonConvert.SerializeObject(data);
-            await BroadcastExcept(new Command(CommandType.InformClientGameInit, dataString), players[currentPlayer]);
+            await BroadcastExcept(new Command(CommandType.InformStatus, dataString), players[currentPlayer]);
         } 
 
         public async Task InformTurnResult(Player player, Card retrieveCard, Card exposedCard)
@@ -125,7 +125,10 @@ namespace Assets.Code.Scripts.Server
             client.DataReceived += HandleDataReceived;
             client.ErrorOccurred += HandleClientError;
 
-            await client.SendAsync(new Command(CommandType.Name, null));
+            await client.SendAsync(new Command(CommandType.Name, new
+            {
+                ID = new Guid()
+            }));
         }
 
         private async void HandleClientError(string exception, AsyncTCPClient client)
@@ -153,10 +156,10 @@ namespace Assets.Code.Scripts.Server
         {
             await Task.Run(() => {
             
-                (Card cardPlayed, List<Card> hand) = JsonConvert.DeserializeObject<(Card exposedCard, List<Card> hand)>(command.Data.ToString());
+                (List<Card> cardsPlayed, List<Card> hand) = JsonConvert.DeserializeObject<(List<Card> cardsPlayed, List<Card> hand)>(command.Data.ToString());
                 Player player = players.FirstOrDefault(item => item.Value == client).Key;
 
-                TurnPlayed?.Invoke(player, cardPlayed, hand);
+                TurnPlayed?.Invoke(player, cardsPlayed, hand);
             });
         }
 

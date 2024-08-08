@@ -18,10 +18,16 @@ namespace Assets.Code.Scripts.Common.Sockets
 
         #region Constructors
 
+        public AsyncTCPClient()
+        {
+            this.client = new TcpClient();
+        }
+
         public AsyncTCPClient(TcpClient client)
         {
             this.client = client;
         }
+
 
         #endregion
 

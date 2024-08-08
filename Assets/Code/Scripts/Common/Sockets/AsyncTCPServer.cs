@@ -29,7 +29,14 @@ namespace Assets.Code.Scripts.Common.Sockets
 
         public AsyncTCPServer()
         {
-            listener = new TcpListener(IPAddressHelper.GetLocal(), PORT);
+            try 
+            {
+                listener = new TcpListener(IPAddress.Any, PORT);
+            }
+            catch (Exception exception)
+            {
+                Debug.WriteLine(exception.ToString());
+            }
         }
 
         #endregion

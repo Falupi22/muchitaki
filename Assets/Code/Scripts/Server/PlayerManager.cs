@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine.XR;
+using Assets.Code.Scripts.Client.Popups;
 
 namespace Assets.Code.Scripts.Server
 {
@@ -126,10 +127,8 @@ namespace Assets.Code.Scripts.Server
             client.DataReceived += HandleDataReceived;
             client.ErrorOccurred += HandleClientError;
 
-            await client.SendAsync(new Command(CommandType.Name, new
-            {
-                ID = new Guid()
-            }));
+            MessageBox.Show("TCP SERVER ACCEPT - SEND NAME PROT");
+            await client.SendAsync(new Command(CommandType.Name, Guid.NewGuid().ToString()));
         }
 
         private async void HandleClientError(string exception, AsyncTCPClient client)
@@ -142,7 +141,8 @@ namespace Assets.Code.Scripts.Server
             Debug.WriteLine($"{player}:{exception}");
             await BroadcastExcept(new Command(CommandType.InformClientPlayerLeft, JsonConvert.SerializeObject(player)), client);
             
-            players.Remove(player, out _);
+            // Tries to remove (not immediately) because if it crashes during name fetching, it is not yet considered a connected client
+            players.TryRemove(player, out _);
             PlayerDisconnected?.Invoke(player);
         }
 
@@ -167,13 +167,20 @@ namespace Assets.Code.Scripts.Server
 
         public async Task HandleNameResp(Command command, AsyncTCPClient client)
         {
-            (string name, Guid id) = JsonConvert.DeserializeObject<(string name, Guid id)>(command.Data.ToString());
-            Player player = new Player(name, id);
+            MessageBox.Show("RESP received: " + command.Data.ToString());
+
+            var template = new { Name = "", ID = "" };
+            var result = JsonConvert.DeserializeAnonymousType(command.Data.ToString(), template);
+            MessageBox.Show("RESP proccessing: " + result.Name + " " + result.ID);
+
+            Player player = new Player(result.Name, new Guid(result.ID));
             players[player] = client;
+
+            MessageBox.Show("RESP processd");
 
             await BroadcastExcept(new Command(CommandType.InformClientPlayerJoined, JsonConvert.SerializeObject(player)), client);
 
-            Debug.WriteLine(name);
+            Debug.WriteLine(result.Name);
             PlayerConnected?.Invoke(player);
         }
 

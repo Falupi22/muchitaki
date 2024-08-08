@@ -8,8 +8,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using Assets.Code.Scripts.Client.EventInfos;
+using System.Net;
+using Assets.Code.Scripts.Client.Popups;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Xml.Linq;
+using Newtonsoft.Json;
 
-public class GameManager : MonoBehaviour
+public class GameManager
 {
     #region Singleton
 
@@ -17,8 +23,16 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
+    #region Constants
+
+    public const int RESPONSE_TIMEOUT_IN_MILLISECONDS = 2000;
+
+    #endregion
+
     #region Fields
 
+    private Guid playerID;
+    private string name;
     private AsyncTCPClient client;
     private List<Player> players;
     private Player currentPlayer;
@@ -37,6 +51,7 @@ public class GameManager : MonoBehaviour
         commandCallbacks = new Dictionary<CommandType, Action<Command, AsyncTCPClient>>();
         commandCallbacks.Add(CommandType.InformClientGameInit, HandleGameInit);
         commandCallbacks.Add(CommandType.InformStatus, HandleStatus);
+        commandCallbacks.Add(CommandType.Name, HandleName);
     }
 
     #endregion
@@ -45,6 +60,7 @@ public class GameManager : MonoBehaviour
 
     public event Action<GameInitializedEventArgs> GameInitialized;
     public event Action<InformStatusEventArgs> InformStatus;
+    public event Action Connected;
     public event Action Reset;
 
     #endregion
@@ -62,6 +78,19 @@ public class GameManager : MonoBehaviour
     #endregion
 
     #region Methods
+
+    public async Task Connect(IPAddress address, int port, string name)
+    {
+        await client.ConnectAsync(address, port);
+
+        if (client.IsConnected)
+        {
+            MessageBox.Show("TCP BEGIN");
+
+            this.name = name;
+            await client.StartReceivingAsync();
+        }
+    }
 
     public void ResetAll()
     {
@@ -100,6 +129,23 @@ public class GameManager : MonoBehaviour
     }
 
     #region Command Handlers
+
+    private async void HandleName(Command command, AsyncTCPClient client)
+    {
+        playerID = Guid.Parse(command.Data.ToString());
+        MessageBox.Show(command.Data.ToString());
+
+        var data = new
+        {
+            Name = name,
+            ID = playerID
+        };
+
+        await client.SendAsync(new Command(CommandType.NameResp, JsonConvert.SerializeObject(data)));
+        currentPlayer = new Player(name, playerID);
+
+        Connected?.Invoke();
+    }
 
     private void HandleStatus(Command command, AsyncTCPClient client)
     {
@@ -154,6 +200,9 @@ public class GameManager : MonoBehaviour
     private void HandleDataReceived(string message, AsyncTCPClient client)
     {
         Command command = Command.FromString(message);
+        MessageBox.Show("Message: " + message);
+        MessageBox.Show("Tyoe: " + command.CommandType.ToString());
+
         commandCallbacks[command.CommandType]?.Invoke(command, client);
     }
 

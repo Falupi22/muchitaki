@@ -13,14 +13,8 @@ using UnityBasedTimer = Assets.Code.Scripts.Common.Utils.Timers.Timer;
 
 namespace Assets.Code.Scripts.Client
 {
-    internal class BoardManager : MonoBehaviour
+    public class BoardView : MonoBehaviour
     {
-        #region Singleton
-
-        private static readonly Lazy<BoardManager> lazy = new Lazy<BoardManager>(() => new BoardManager());
-
-        #endregion
-
         #region Constants
 
         public const int TIMER_INTERVAL_IN_MILLISECONDS = 1000;
@@ -30,9 +24,23 @@ namespace Assets.Code.Scripts.Client
 
         #region Fields
 
+        [SerializeField]
+        private List<PlayerView> playerViews;
+
+        [SerializeField]
+        private PlayerView currentPlayerView;
+
+        [SerializeField]
+        private CardView currentCard;
+
+        [SerializeField]
+        private DeckView deckView;
+
+        [SerializeField]
         private UnityBasedTimer timer;
+
         private int secondsCounter;
-        private string name;
+        private string time;
         private GameManager gameManager;
         private List<Card> selectableCards;
         private List<Card> selectedCards;
@@ -44,29 +52,22 @@ namespace Assets.Code.Scripts.Client
 
         #region Constructors
 
-        private BoardManager()
+        public BoardView()
         {
             gameManager = GameManager.Instance;
             gameManager.GameInitialized += HandleGameInitialized;
             gameManager.InformStatus += HandleStatus;
             gameManager.Reset += HandleReset;
 
-            timer = new UnityBasedTimer(TIMER_INTERVAL_IN_MILLISECONDS, HandleTimerElapsed);
+            timer = null;
             selectableCards = new List<Card>();
             selectedCards = new List<Card>();
+            playerViews = new List<PlayerView>();
         }
 
         #endregion
 
         #region Properties
-
-        public static BoardManager Instance
-        {
-            get
-            {
-                return lazy.Value;
-            }
-        }
 
         public int SecondsConunter 
         { 

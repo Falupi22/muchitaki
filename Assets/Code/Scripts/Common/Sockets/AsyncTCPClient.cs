@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Net;
+using Assets.Code.Scripts.Client.Popups;
+using Assets.Code.Scripts.Common.Commands;
 
 namespace Assets.Code.Scripts.Common.Sockets
 {
@@ -31,6 +33,12 @@ namespace Assets.Code.Scripts.Common.Sockets
 
         #endregion
 
+        #region Properties
+
+        public bool IsConnected { get => client.Connected; }
+
+        #endregion
+
         #region Events
 
         public event Action<string, AsyncTCPClient> DataReceived;
@@ -54,9 +62,11 @@ namespace Assets.Code.Scripts.Common.Sockets
             {
                 client = new TcpClient();
                 await client.ConnectAsync(hostIP.ToString(), port);
+
             }
             catch (Exception exception)
             {
+                MessageBox.Show(exception.Message);
                 ErrorOccurred?.Invoke(exception.ToString(), this);
             }
         }
@@ -85,6 +95,7 @@ namespace Assets.Code.Scripts.Common.Sockets
             }
             catch (Exception exception)
             {
+                MessageBox.Show(exception.Message);
                 ErrorOccurred?.Invoke(exception.ToString(), this);
             }
         }
@@ -103,11 +114,12 @@ namespace Assets.Code.Scripts.Common.Sockets
 
                     NetworkStream stream = client.GetStream();
                     bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-
+                    MessageBox.Show(bytesRead.ToString());
                     if (bytesRead > 0)
                     {
                         string data = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                         await stream.FlushAsync();
+                        MessageBox.Show("INFO RECEIVED: " + data);
 
                         DataReceived?.Invoke(data, this);
                     }
@@ -118,6 +130,7 @@ namespace Assets.Code.Scripts.Common.Sockets
                 catch (Exception exception)
                 {
                     isError = true;
+                MessageBox.Show(exception.Message);
                     ErrorOccurred?.Invoke(exception.ToString(), this);
                 }
             }
